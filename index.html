@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>機械の声が受験を変える、速聴英単語</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #f2f2f7;
+      text-align: center;
+      padding: 2em;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 0.5em;
+    }
+    p.subtitle {
+      color: #666;
+      font-size: 1em;
+      margin: 0.3em 0;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 2em;
+      align-items: center;
+    }
+    .card, .test {
+      background: linear-gradient(145deg, #ffffff, #e6e6eb);
+      border: 2px solid #ccc;
+      border-radius: 16px;
+      padding: 2em;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+      transition: 0.3s;
+    }
+    .card:hover {
+      box-shadow: 8px 8px 20px rgba(0,0,0,0.15);
+    }
+    .card-inner {
+      cursor: pointer;
+      font-size: 1.2em;
+      line-height: 1.5;
+    }
+    .choices button {
+      margin: 0.5em;
+      padding: 0.7em 1.5em;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background-color: #eee;
+      font-size: 1em;
+      transition: background-color 0.3s;
+    }
+    .choices button:hover {
+      background-color: #ddd;
+    }
+    #result {
+      margin-top: 1em;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+    #nextBtn {
+      display: none;
+      margin-top: 1em;
+      padding: 0.6em 1.2em;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>機械の声が受験を変える、速聴英単語</h1>
+  <p class="subtitle">クリックすると、たまにボカロ英文が混ざります。</p>
+  <p class="subtitle">知ってるか？MacやWindowsの場合、マウスや指でドラッグして「読み上げる」と、たまに喋るぞ？</p>
+
+  <div class="container">
+    <div class="card">
+      <h2>【フラッシュカード】</h2>
+      <div id="flashcard" class="card-inner" onclick="flipCard()">
+        Loading...
+      </div>
+    </div>
+
+    <div class="test">
+      <h2>【テストモード】</h2>
+      <div id="question">Loading...</div>
+      <div class="choices" id="choices"></div>
+      <div id="result"></div>
+      <button id="nextBtn" onclick="nextQuestion()">次へ</button>
+    </div>
+  </div>
+
+  <script>
+    const words = [
+      { word: "agree", meaning: "同意する", Exam_Style_Example: "I agree with your opinion.", Vocaloid_Style_Phrase: "I always agree with the silence between us." },
+      { word: "beautiful", meaning: "美しい", Exam_Style_Example: "She is a beautiful woman.", Vocaloid_Style_Phrase: "That beautiful lie still haunts my dreams." },
+      { word: "create", meaning: "創造する", Exam_Style_Example: "Artists create something new.", Vocaloid_Style_Phrase: "Let’s create a future no one else imagined." },
+      { word: "decide", meaning: "決める", Exam_Style_Example: "I decided to study abroad.", Vocaloid_Style_Phrase: "I decide to disappear before the dawn." },
+      { word: "feel", meaning: "感じる", Exam_Style_Example: "I feel nervous before exams.", Vocaloid_Style_Phrase: "I feel your shadow even now." },
+      { word: "give", meaning: "与える", Exam_Style_Example: "He gave me a present.", Vocaloid_Style_Phrase: "I can't give you back what I stole." },
+      { word: "easy", meaning: "簡単な", Exam_Style_Example: "This question is very easy.", Vocaloid_Style_Phrase: "Love isn't easy, but I still tried." },
+      { word: "important", meaning: "重要な", Exam_Style_Example: "English is an important subject.", Vocaloid_Style_Phrase: "The most important word I forgot was 'goodbye.'" }
+    ];
+
+    let current = 0;
+    let flipped = false;
+    let shuffled = [...words];
+    shuffled.sort(() => 0.5 - Math.random());
+
+    function showFlashcard() {
+      const q = shuffled[current];
+      document.getElementById("flashcard").textContent = q.word;
+      flipped = false;
+    }
+
+    function flipCard() {
+      const q = shuffled[current];
+      let example = "";
+      if (q.Vocaloid_Style_Phrase && Math.random() > 0.5) {
+        example = q.Vocaloid_Style_Phrase;
+      } else {
+        example = q.Exam_Style_Example;
+      }
+      document.getElementById("flashcard").innerHTML = `<strong>意味:</strong> ${q.meaning}<br><br><strong>例文:</strong> ${example}`;
+      flipped = true;
+    }
+
+    function showQuestion() {
+      document.getElementById("result").textContent = "";
+      document.getElementById("nextBtn").style.display = "none";
+
+      const q = shuffled[current];
+      document.getElementById("question").textContent = `"${q.word}" の意味はどれでしょうか？`;
+
+      let choices = [q.meaning];
+      while (choices.length < 4) {
+        let m = words[Math.floor(Math.random() * words.length)].meaning;
+        if (!choices.includes(m)) choices.push(m);
+      }
+
+      choices.sort(() => 0.5 - Math.random());
+
+      const choiceBox = document.getElementById("choices");
+      choiceBox.innerHTML = "";
+      choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.textContent = choice;
+        btn.onclick = () => checkAnswer(choice, q.meaning);
+        choiceBox.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct) {
+      const result = document.getElementById("result");
+      if (selected === correct) {
+        result.textContent = "正解！よくできました！";
+        result.style.color = "green";
+      } else {
+        result.textContent = `間違いです。正解は "${correct}" です。`;
+        result.style.color = "red";
+      }
+      document.getElementById("nextBtn").style.display = "inline-block";
+    }
+
+    function nextQuestion() {
+      current++;
+      if (current >= shuffled.length) {
+        document.getElementById("flashcard").textContent = "すべての単語が終わりました！";
+        document.getElementById("question").textContent = "すべての問題が終わりました！";
+        document.getElementById("choices").innerHTML = "";
+        document.getElementById("nextBtn").style.display = "none";
+      } else {
+        showFlashcard();
+        showQuestion();
+      }
+    }
+
+    showFlashcard();
+    showQuestion();
+  </script>
+
+</body>
+</html>
