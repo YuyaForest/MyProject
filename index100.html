@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>機械の声が受験を変える、速聴英単語100</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     body {
       font-family: 'Helvetica Neue', sans-serif;
@@ -97,29 +98,20 @@
     let current = 0;
     let flipped = false;
 
-    fetch('vocabloid100.csv')
-      .then(response => response.text())
-      .then(data => {
-        const lines = data.trim().split('\n');
-        const headers = lines[0].split(',');
-        for (let i = 1; i < lines.length; i++) {
-          const row = lines[i].split(',');
-          const word = {
-            word: row[1],
-            meaning: row[2],
-            Exam_Style_Example: row[3],
-            Vocaloid_Style_Phrase: row[4]
-          };
-          words.push(word);
-        }
+    Papa.parse('vocabloid100.csv', {
+      header: true,
+      download: true,
+      complete: function(results) {
+        words = results.data.filter(row => row.Word && row.Meaning);
         words.sort(() => 0.5 - Math.random());
         showFlashcard();
         showQuestion();
-      });
+      }
+    });
 
     function showFlashcard() {
       const q = words[current];
-      document.getElementById("flashcard").textContent = q.word;
+      document.getElementById("flashcard").textContent = q.Word;
       flipped = false;
     }
 
@@ -129,9 +121,9 @@
       if (q.Vocaloid_Style_Phrase && Math.random() > 0.5) {
         example = q.Vocaloid_Style_Phrase;
       } else {
-        example = q.Exam_Style_Example;
+        example = q.Exam_Style_Example || "（例文なし）";
       }
-      document.getElementById("flashcard").innerHTML = `<strong>意味:</strong> ${q.meaning}<br><br><strong>例文:</strong> ${example}`;
+      document.getElementById("flashcard").innerHTML = `<strong>意味:</strong> ${q.Meaning}<br><br><strong>例文:</strong> ${example}`;
       flipped = true;
     }
 
@@ -140,11 +132,11 @@
       document.getElementById("result").textContent = "";
       document.getElementById("nextBtn").style.display = "none";
 
-      document.getElementById("question").textContent = `"${q.word}" の意味はどれでしょうか？`;
+      document.getElementById("question").textContent = `"${q.Word}" の意味はどれでしょうか？`;
 
-      let choices = [q.meaning];
+      let choices = [q.Meaning];
       while (choices.length < 4) {
-        let m = words[Math.floor(Math.random() * words.length)].meaning;
+        let m = words[Math.floor(Math.random() * words.length)].Meaning;
         if (!choices.includes(m)) choices.push(m);
       }
 
@@ -155,7 +147,7 @@
       choices.forEach(choice => {
         const btn = document.createElement("button");
         btn.textContent = choice;
-        btn.onclick = () => checkAnswer(choice, q.meaning);
+        btn.onclick = () => checkAnswer(choice, q.Meaning);
         choiceBox.appendChild(btn);
       });
     }
